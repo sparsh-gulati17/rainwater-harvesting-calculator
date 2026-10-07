@@ -168,6 +168,7 @@ Format strictly as JSON:
           Authorization: `Bearer ${GROQ_API_KEY}`,
           "Content-Type": "application/json",
         },
+        signal: AbortSignal.timeout(4000),
         body: JSON.stringify({
           model: "qwen/qwen3.8-27b",
           messages: [{ role: "user", content: prompt }],
@@ -202,13 +203,14 @@ Format strictly as JSON:
   // 3. AI Geocoding Fallback via Gemini
   if (GEMINI_API_KEY) {
     try {
-      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent";
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent";
       const res = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-goog-api-key": GEMINI_API_KEY,
         },
+        signal: AbortSignal.timeout(4000),
         body: JSON.stringify({
           contents: [
             {

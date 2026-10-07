@@ -21,11 +21,9 @@ interface AIAnalysisResult {
   modelUsed: string;
 }
 
-// Active Gemini model cascade (tried in order: ultra-fast 3.5-flash -> 3.7-flash -> 3.8-flash -> 3.1-flash-lite)
+// Active Gemini model cascade: ultra-fast 3.5-flash-lite -> 3.1-flash-lite
 const GEMINI_MODELS = [
-  { id: "gemini-3.5-flash", name: "Google Gemini 3.5 Flash" },
-  { id: "gemini-3.7-flash", name: "Google Gemini 3.7 Flash" },
-  { id: "gemini-3.8-flash", name: "Google Gemini 3.8 Flash" },
+  { id: "gemini-3.5-flash-lite", name: "Google Gemini 3.5 Flash Lite" },
   { id: "gemini-3.1-flash-lite", name: "Google Gemini 3.1 Flash Lite" },
 ];
 
@@ -62,6 +60,7 @@ async function queryGemini(systemPrompt: string, userPrompt: string): Promise<{ 
           "Content-Type": "application/json",
           "x-goog-api-key": GEMINI_API_KEY,
         },
+        signal: AbortSignal.timeout(6000),
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemPrompt }] },
           contents: [{ parts: [{ text: userPrompt }] }],
@@ -110,6 +109,7 @@ async function queryGroq(systemPrompt: string, userPrompt: string): Promise<{ te
           Authorization: `Bearer ${GROQ_API_KEY}`,
           "Content-Type": "application/json",
         },
+        signal: AbortSignal.timeout(6000),
         body: JSON.stringify({
           model: m,
           messages: [

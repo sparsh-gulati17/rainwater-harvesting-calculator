@@ -301,7 +301,7 @@ export default function GlyphPortal({
       }
     };
     const schedule = () => { if (!raf && active) raf = requestAnimationFrame(frame); };
-    const resize = () => { cancelAnimationFrame(raf); dirty = true; schedule(); };
+    const resize = () => { cancelAnimationFrame(raf); raf = 0; dirty = true; schedule(); };
     const scroll = () => schedule();
     const choose = (event: Event) => {
       if (!choosing || position() >= .04) return;

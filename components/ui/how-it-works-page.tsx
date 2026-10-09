@@ -413,7 +413,7 @@ export default function HowItWorksPage() {
           </Link>
 
           <nav className="hiw-nav" aria-label="Desktop Navigation">
-            <Link href="/" className="hiw-nav-link">Home (Globe)</Link>
+            <Link href="/" className="hiw-nav-link">Home (3D Globe)</Link>
             <Link href="/calculate" className="hiw-nav-link">Calculator</Link>
             <Link href="/how-it-works" className="hiw-nav-link active">How It Works</Link>
             <Link href="/about" className="hiw-nav-link">About</Link>

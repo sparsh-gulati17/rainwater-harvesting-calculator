@@ -152,7 +152,8 @@ async function resolveLocation(query: string) {
   // 2. AI Geocoding Fallback via Groq
   if (GROQ_API_KEY) {
     try {
-      const prompt = `Return the exact latitude, longitude, clean city name, state/region, and country for: "${query}".
+      const prompt = `You are a strict geographic resolver. If "${query}" is a genuine real-world city, district, or geographic location, return its coordinates.
+If "${query}" does NOT exist, is gibberish, fictional, or unrecognized, return strictly: {"error": "Location not found"}.
 Format strictly as JSON:
 {
   "name": "City Name",
@@ -172,7 +173,7 @@ Format strictly as JSON:
         body: JSON.stringify({
           model: "qwen/qwen3.8-27b",
           messages: [{ role: "user", content: prompt }],
-          temperature: 0.1,
+          temperature: 0.0,
           response_format: { type: "json_object" },
         }),
       });
@@ -182,7 +183,16 @@ Format strictly as JSON:
         const content = data.choices?.[0]?.message?.content;
         if (content) {
           const parsed = JSON.parse(content);
-          if (typeof parsed.latitude === "number" && typeof parsed.longitude === "number") {
+          if (
+            !parsed.error &&
+            typeof parsed.latitude === "number" &&
+            typeof parsed.longitude === "number" &&
+            isFinite(parsed.latitude) &&
+            isFinite(parsed.longitude) &&
+            Math.abs(parsed.latitude) <= 90 &&
+            Math.abs(parsed.longitude) <= 180 &&
+            !(parsed.latitude === 0 && parsed.longitude === 0)
+          ) {
             const resolved = {
               lat: parsed.latitude,
               lon: parsed.longitude,
@@ -216,12 +226,12 @@ Format strictly as JSON:
             {
               parts: [
                 {
-                  text: `Return the exact latitude, longitude, clean city name, state/region, and country for "${query}" strictly as JSON: {"name": "...", "region": "...", "country": "...", "latitude": 12.34, "longitude": 56.78}`,
+                  text: `You are a strict geographic resolver. If "${query}" is a genuine real-world city, district, or geographic location, return its coordinates as JSON: {"name": "...", "region": "...", "country": "...", "latitude": 12.34, "longitude": 56.78}. If "${query}" is fake, gibberish, or unrecognized, return strictly {"error": "Location not found"}.`,
                 },
               ],
             },
           ],
-          generationConfig: { responseMimeType: "application/json", temperature: 0.1 },
+          generationConfig: { responseMimeType: "application/json", temperature: 0.0 },
         }),
       });
 
@@ -230,7 +240,16 @@ Format strictly as JSON:
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text) {
           const parsed = JSON.parse(text);
-          if (typeof parsed.latitude === "number" && typeof parsed.longitude === "number") {
+          if (
+            !parsed.error &&
+            typeof parsed.latitude === "number" &&
+            typeof parsed.longitude === "number" &&
+            isFinite(parsed.latitude) &&
+            isFinite(parsed.longitude) &&
+            Math.abs(parsed.latitude) <= 90 &&
+            Math.abs(parsed.longitude) <= 180 &&
+            !(parsed.latitude === 0 && parsed.longitude === 0)
+          ) {
             const resolved = {
               lat: parsed.latitude,
               lon: parsed.longitude,

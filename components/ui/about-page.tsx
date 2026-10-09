@@ -389,7 +389,7 @@ export default function AboutPage() {
           </Link>
 
           <nav className="about-nav" aria-label="Desktop Navigation">
-            <Link href="/" className="about-nav-link">Home (Globe)</Link>
+            <Link href="/" className="about-nav-link">Home (3D Globe)</Link>
             <Link href="/calculate" className="about-nav-link">Calculator</Link>
             <Link href="/how-it-works" className="about-nav-link">How It Works</Link>
             <Link href="/about" className="about-nav-link active">About</Link>

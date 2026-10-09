@@ -213,6 +213,8 @@ export default function Demo(props: Partial<typeof settings>) {
         [data-slipstream-demo] [data-gp-content] {
           padding: 0 !important;
           font-family: inherit;
+          overflow-x: clip;
+          max-width: 100%;
         }
         [data-slipstream-demo] section,
         [data-slipstream-demo] [data-gp-caption] {
@@ -289,7 +291,7 @@ export default function Demo(props: Partial<typeof settings>) {
           }
         >
           {/* Destination: High-Performance 3D Storm Scene */}
-          <div className="w-full">
+          <div className="w-full max-w-full overflow-x-clip">
             {/* 3D Global Atmospheric Storm Scene with Raining Clouds & Lightning */}
             <OrbitDeliveryHero theme="light" onCalculate={() => { window.location.href = "/calculate"; }} />
           </div>

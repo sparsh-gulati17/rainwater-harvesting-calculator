@@ -168,6 +168,7 @@ export default function RainwaterPageDashboard() {
   const [hoveredMonth, setHoveredMonth] = useState<number | null>(null);
   const [calculatedTimestamp, setCalculatedTimestamp] = useState<number>(Date.now());
   const [justCalculated, setJustCalculated] = useState<boolean>(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -757,15 +758,17 @@ export default function RainwaterPageDashboard() {
           box-sizing: border-box;
           padding: 0;
           margin: 0;
+          overflow-x: clip;
         }
 
         .rd-header-bar {
           border-bottom: 1px solid #dce5fa;
-          background: rgba(255, 255, 255, 0.88);
+          background: rgba(255, 255, 255, 0.92);
           backdrop-filter: blur(14px);
           position: sticky;
           top: 0;
           z-index: 50;
+          width: 100%;
         }
 
         .rd-header-inner {
@@ -776,6 +779,7 @@ export default function RainwaterPageDashboard() {
           align-items: center;
           justify-content: space-between;
           gap: 16px;
+          position: relative;
         }
 
         .rd-brand-group {
@@ -821,7 +825,7 @@ export default function RainwaterPageDashboard() {
           color: #4d5a83;
           padding: 6px 14px;
           border-radius: 999px;
-          transition: all 0.2s;
+          transition: all 0.2s ease;
         }
 
         .rd-nav-link:hover {
@@ -867,11 +871,110 @@ export default function RainwaterPageDashboard() {
           box-shadow: 0 2px 6px rgba(71, 115, 236, 0.3);
         }
 
+        /* Mobile header toggle & drawer */
+        .rd-mobile-toggle-btn {
+          display: none;
+          align-items: center;
+          justify-content: center;
+          width: 44px;
+          height: 44px;
+          background: #f1f5f9;
+          border: 1px solid #dce5fa;
+          border-radius: 12px;
+          color: #080e2b;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          padding: 0;
+          flex-shrink: 0;
+        }
+
+        .rd-mobile-toggle-btn:hover {
+          background: #e2e8f0;
+          color: #2563eb;
+        }
+
+        .rd-mobile-drawer {
+          display: flex;
+          flex-direction: column;
+          background: #ffffff;
+          border-top: 1px solid #e2e8f0;
+          border-bottom: 1px solid #dce5fa;
+          padding: 16px 20px 22px;
+          box-shadow: 0 12px 30px rgba(24, 60, 115, 0.08);
+          animation: rdDrawerSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes rdDrawerSlide {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .rd-mobile-nav-links {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .rd-mobile-nav-link {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 14px;
+          border-radius: 12px;
+          font-size: 14.5px;
+          font-weight: 600;
+          color: #334155;
+          text-decoration: none;
+          transition: background 0.15s ease, color 0.15s ease;
+          min-height: 44px;
+          box-sizing: border-box;
+        }
+
+        .rd-mobile-nav-link:hover {
+          background: #f1f5f9;
+          color: #2563eb;
+        }
+
+        .rd-mobile-nav-link.active {
+          background: #eff6ff;
+          color: #2563eb;
+          font-weight: 700;
+        }
+
+        .rd-mobile-drawer-divider {
+          height: 1px;
+          background: #e2e8f0;
+          margin: 14px 0;
+        }
+
+        .rd-mobile-drawer-controls {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .rd-mobile-controls-label {
+          font-size: 12px;
+          font-weight: 700;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 2px;
+        }
+
         /* Container */
         .rd-container {
           max-width: 1180px;
           margin: 0 auto;
           padding: 36px 20px 80px;
+          box-sizing: border-box;
+          width: 100%;
         }
 
         /* Hero / intro strip */
@@ -906,6 +1009,86 @@ export default function RainwaterPageDashboard() {
           line-height: 1.55;
         }
 
+        /* Step cards */
+        .rd-step-card {
+          background: #ffffff;
+          border: 1px solid #dce5fa;
+          border-radius: 24px;
+          padding: 30px 28px;
+          box-shadow: 0 4px 20px rgba(24, 60, 115, 0.04);
+          margin-bottom: 24px;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          box-sizing: border-box;
+          max-width: 100%;
+        }
+
+        .rd-step-card:hover {
+          border-color: #cbdcfc;
+          box-shadow: 0 6px 24px rgba(24, 60, 115, 0.06);
+        }
+
+        .rd-step-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 12px;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .rd-step-badge-wrap {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+        }
+
+        .rd-step-num {
+          background: #4773ec;
+          color: #ffffff;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          padding: 3px 10px;
+          border-radius: 999px;
+        }
+
+        .rd-step-tag {
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #4773ec;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+        }
+
+        .rd-step-formula-pill {
+          font-size: 11.5px;
+          color: #64748b;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          padding: 4px 12px;
+          border-radius: 999px;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        .rd-step-title {
+          font-size: 20px;
+          font-weight: 800;
+          color: #080e2b;
+          margin: 0 0 6px;
+          letter-spacing: -0.4px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .rd-step-desc {
+          font-size: 13.5px;
+          color: #556987;
+          margin: 0 0 20px;
+          line-height: 1.55;
+        }
+
         /* Card panels */
         .rd-panel {
           background: #ffffff;
@@ -914,6 +1097,8 @@ export default function RainwaterPageDashboard() {
           padding: 32px 28px;
           box-shadow: 0 4px 20px rgba(24, 60, 115, 0.04);
           margin-bottom: 28px;
+          box-sizing: border-box;
+          max-width: 100%;
         }
 
         .rd-panel-header {
@@ -940,14 +1125,14 @@ export default function RainwaterPageDashboard() {
         /* Input grid */
         .rd-grid-2 {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
           gap: 20px;
           margin-bottom: 20px;
         }
 
         .rd-grid-3 {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
           gap: 18px;
           margin-bottom: 20px;
         }
@@ -956,6 +1141,7 @@ export default function RainwaterPageDashboard() {
           display: flex;
           flex-direction: column;
           gap: 7px;
+          min-width: 0;
         }
 
         .rd-label {
@@ -965,10 +1151,15 @@ export default function RainwaterPageDashboard() {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 4px;
         }
 
         .rd-input, .rd-select {
           padding: 12px 14px;
+          min-height: 44px;
+          box-sizing: border-box;
+          width: 100%;
           border: 1.5px solid #dce5fa;
           border-radius: 14px;
           font-size: 14.5px;
@@ -976,7 +1167,7 @@ export default function RainwaterPageDashboard() {
           color: #0f172a;
           background: #fbfdff;
           outline: none;
-          transition: all 0.2s;
+          transition: all 0.2s ease;
         }
 
         .rd-input:focus, .rd-select:focus {
@@ -1005,8 +1196,8 @@ export default function RainwaterPageDashboard() {
         /* Presets Grid */
         .rd-preset-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 12px;
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+          gap: 14px;
           margin-bottom: 14px;
         }
 
@@ -1016,10 +1207,12 @@ export default function RainwaterPageDashboard() {
           border-radius: 16px;
           padding: 14px;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           display: flex;
           flex-direction: column;
           justify-content: space-between;
+          min-height: 120px;
+          box-sizing: border-box;
         }
 
         .rd-preset-card:hover {
@@ -1064,7 +1257,67 @@ export default function RainwaterPageDashboard() {
           border-radius: 6px;
         }
 
-        /* Buttons bar */
+        /* Buttons bar & Action bar */
+        .rd-action-bar {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          margin-bottom: 32px;
+          flex-wrap: wrap;
+        }
+
+        .rd-primary-calculate-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background: linear-gradient(135deg, #4773ec 0%, #2563eb 100%);
+          color: #ffffff;
+          font-weight: 700;
+          font-size: 15.5px;
+          padding: 14px 36px;
+          min-height: 48px;
+          border-radius: 999px;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 4px 18px rgba(71, 115, 236, 0.35);
+          text-decoration: none;
+        }
+
+        .rd-primary-calculate-btn:hover {
+          background: linear-gradient(135deg, #3864df 0%, #1d4ed8 100%);
+          box-shadow: 0 6px 24px rgba(71, 115, 236, 0.45);
+          transform: translateY(-2px);
+        }
+
+        .rd-primary-calculate-btn:active {
+          transform: translateY(0);
+        }
+
+        .rd-secondary-reset-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          background: #ffffff;
+          color: #475569;
+          font-weight: 600;
+          font-size: 14px;
+          padding: 13px 26px;
+          min-height: 48px;
+          border-radius: 999px;
+          border: 1px solid #dce5fa;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .rd-secondary-reset-btn:hover {
+          background: #f1f5f9;
+          color: #0f172a;
+          border-color: #cbd5e1;
+        }
+
         .rd-btn-bar {
           display: flex;
           align-items: center;
@@ -1083,10 +1336,11 @@ export default function RainwaterPageDashboard() {
           font-weight: 700;
           font-size: 15px;
           padding: 13px 32px;
+          min-height: 44px;
           border-radius: 999px;
           border: none;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           box-shadow: 0 4px 16px rgba(71, 115, 236, 0.35);
         }
 
@@ -1106,10 +1360,11 @@ export default function RainwaterPageDashboard() {
           font-weight: 600;
           font-size: 13.5px;
           padding: 12px 22px;
+          min-height: 44px;
           border-radius: 999px;
           border: 1px solid #dce5fa;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.2s ease;
         }
 
         .rd-secondary-btn:hover {
@@ -1122,7 +1377,8 @@ export default function RainwaterPageDashboard() {
           color: #475569;
           font-weight: 600;
           font-size: 12.5px;
-          padding: 7px 16px;
+          padding: 8px 16px;
+          min-height: 38px;
           border-radius: 999px;
           border: 1px solid #dce5fa;
           cursor: pointer;
@@ -1154,6 +1410,8 @@ export default function RainwaterPageDashboard() {
           margin-bottom: 28px;
           box-shadow: 0 10px 32px rgba(37, 99, 235, 0.25);
           text-align: center;
+          box-sizing: border-box;
+          max-width: 100%;
         }
 
         .rd-result-eyebrow {
@@ -1167,7 +1425,7 @@ export default function RainwaterPageDashboard() {
         }
 
         .rd-result-big-num {
-          font-size: clamp(38px, 6vw, 56px);
+          font-size: clamp(36px, 6vw, 56px);
           font-weight: 800;
           letter-spacing: -1.5px;
           line-height: 1.05;
@@ -1178,7 +1436,7 @@ export default function RainwaterPageDashboard() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 16px;
+          gap: 14px;
           flex-wrap: wrap;
           margin-top: 14px;
           padding-top: 14px;
@@ -1186,18 +1444,18 @@ export default function RainwaterPageDashboard() {
         }
 
         .rd-conv-item {
-          background: rgba(255, 255, 255, 0.14);
+          background: rgba(255, 255, 255, 0.15);
           backdrop-filter: blur(8px);
           border-radius: 12px;
           padding: 8px 16px;
-          font-size: 14px;
+          font-size: 13.5px;
           font-weight: 600;
         }
 
         /* Results Cards Grid */
         .rd-results-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
           gap: 18px;
           margin-bottom: 28px;
         }
@@ -1208,6 +1466,14 @@ export default function RainwaterPageDashboard() {
           border-radius: 20px;
           padding: 22px 20px;
           box-shadow: 0 4px 18px rgba(24, 60, 115, 0.04);
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+          box-sizing: border-box;
+        }
+
+        .rd-res-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(24, 60, 115, 0.07);
+          border-color: #cbdcfc;
         }
 
         .rd-res-header {
@@ -1248,6 +1514,8 @@ export default function RainwaterPageDashboard() {
           border-radius: 22px;
           padding: 24px 20px;
           margin-bottom: 28px;
+          box-sizing: border-box;
+          max-width: 100%;
         }
 
         .rd-chart-bars {
@@ -1256,6 +1524,8 @@ export default function RainwaterPageDashboard() {
           gap: 8px;
           height: 180px;
           padding-top: 20px;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .rd-bar-wrap {
@@ -1266,6 +1536,7 @@ export default function RainwaterPageDashboard() {
           height: 100%;
           justify-content: flex-end;
           cursor: pointer;
+          min-width: 0;
         }
 
         .rd-bar-fill {
@@ -1273,7 +1544,7 @@ export default function RainwaterPageDashboard() {
           max-width: 36px;
           background: linear-gradient(180deg, #4773ec 0%, #2563eb 100%);
           border-radius: 6px 6px 0 0;
-          transition: all 0.2s;
+          transition: all 0.2s ease;
         }
 
         .rd-bar-wrap:hover .rd-bar-fill {
@@ -1286,6 +1557,10 @@ export default function RainwaterPageDashboard() {
           font-weight: 600;
           color: #64748b;
           margin-top: 6px;
+          text-align: center;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: clip;
         }
 
         /* Education & formula section */
@@ -1295,6 +1570,8 @@ export default function RainwaterPageDashboard() {
           border-radius: 24px;
           padding: 32px 28px;
           margin-bottom: 28px;
+          box-sizing: border-box;
+          max-width: 100%;
         }
 
         .rd-formula-box {
@@ -1307,11 +1584,13 @@ export default function RainwaterPageDashboard() {
           font-weight: 700;
           color: #1e40af;
           margin: 16px 0;
+          overflow-x: auto;
+          word-break: break-word;
         }
 
         .rd-edu-steps {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
           gap: 16px;
           margin-top: 20px;
         }
@@ -1321,6 +1600,7 @@ export default function RainwaterPageDashboard() {
           border: 1px solid #e1eaf8;
           border-radius: 16px;
           padding: 18px;
+          box-sizing: border-box;
         }
 
         .rd-edu-num {
@@ -1344,14 +1624,77 @@ export default function RainwaterPageDashboard() {
           .rd-nav-links {
             display: none;
           }
+          .rd-header-controls {
+            display: none;
+          }
+          .rd-mobile-toggle-btn {
+            display: flex;
+          }
           .rd-container {
-            padding: 20px 14px 60px;
+            padding: 24px 16px 60px;
+          }
+          .rd-step-card {
+            padding: 22px 18px;
+            border-radius: 20px;
+            margin-bottom: 18px;
           }
           .rd-panel {
             padding: 22px 18px;
+            border-radius: 20px;
+          }
+          .rd-step-title {
+            font-size: 18px;
+          }
+          .rd-action-bar {
+            flex-direction: column;
+            width: 100%;
+          }
+          .rd-primary-calculate-btn {
+            width: 100%;
+          }
+          .rd-secondary-reset-btn {
+            width: 100%;
           }
           .rd-chart-bars {
             gap: 4px;
+            height: 160px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .rd-container {
+            padding: 18px 12px 50px;
+          }
+          .rd-step-card {
+            padding: 18px 14px;
+            border-radius: 18px;
+          }
+          .rd-panel {
+            padding: 18px 14px;
+            border-radius: 18px;
+          }
+          .rd-chart-bars {
+            gap: 2.5px;
+            height: 150px;
+          }
+          .rd-bar-text {
+            font-size: 10px;
+          }
+          .rd-conversions-grid {
+            gap: 8px;
+          }
+          .rd-conv-item {
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation: none !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
           }
         }
       `}</style>
@@ -1376,8 +1719,9 @@ export default function RainwaterPageDashboard() {
             </span>
           </Link>
 
-          <nav className="rd-nav-links">
+          <nav className="rd-nav-links" aria-label="Desktop Navigation">
             <Link href="/" className="rd-nav-link">Home (3D Globe)</Link>
+            <Link href="/calculate" className="rd-nav-link active">Calculator</Link>
             <Link href="/how-it-works" className="rd-nav-link">How It Works</Link>
             <Link href="/about" className="rd-nav-link">About</Link>
           </nav>
@@ -1402,13 +1746,88 @@ export default function RainwaterPageDashboard() {
             <button
               type="button"
               className="rd-secondary-btn"
-              style={{ padding: "6px 14px", fontSize: "12px" }}
+              style={{ padding: "6px 14px", fontSize: "12px", minHeight: "34px" }}
               onClick={handleReset}
             >
               🔄 Reset
             </button>
           </div>
+
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            type="button"
+            className="rd-mobile-toggle-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-expanded={mobileMenuOpen}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            ) : (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"></line>
+                <line x1="4" y1="12" x2="20" y2="12"></line>
+                <line x1="4" y1="18" x2="20" y2="18"></line>
+              </svg>
+            )}
+          </button>
         </div>
+
+        {/* Mobile Slide-down Drawer */}
+        {mobileMenuOpen && (
+          <nav className="rd-mobile-drawer" aria-label="Mobile Navigation">
+            <div className="rd-mobile-nav-links">
+              <Link href="/" className="rd-mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>
+                <span>🌐</span> Home (3D Globe)
+              </Link>
+              <Link href="/calculate" className="rd-mobile-nav-link active" onClick={() => setMobileMenuOpen(false)}>
+                <span>🧮</span> Calculator & Dashboard
+              </Link>
+              <Link href="/how-it-works" className="rd-mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>
+                <span>📘</span> How It Works
+              </Link>
+              <Link href="/about" className="rd-mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>
+                <span>👥</span> About Rainova
+              </Link>
+            </div>
+
+            <div className="rd-mobile-drawer-divider" />
+
+            <div className="rd-mobile-drawer-controls">
+              <span className="rd-mobile-controls-label">Measurement Units</span>
+              <div className="rd-unit-toggle" style={{ width: "100%", display: "flex" }}>
+                <button
+                  type="button"
+                  className={`rd-unit-btn ${unit === "metric" ? "active" : ""}`}
+                  style={{ flex: 1, textAlign: "center", padding: "8px 12px", minHeight: "40px" }}
+                  onClick={() => { setUnit("metric"); setMobileMenuOpen(false); }}
+                >
+                  Metric (m²)
+                </button>
+                <button
+                  type="button"
+                  className={`rd-unit-btn ${unit === "imperial" ? "active" : ""}`}
+                  style={{ flex: 1, textAlign: "center", padding: "8px 12px", minHeight: "40px" }}
+                  onClick={() => { setUnit("imperial"); setMobileMenuOpen(false); }}
+                >
+                  Imperial (sq ft)
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className="rd-secondary-btn"
+                style={{ width: "100%", justifyContent: "center", minHeight: "44px", marginTop: "10px" }}
+                onClick={() => { handleReset(); setMobileMenuOpen(false); }}
+              >
+                🔄 Reset Calculator
+              </button>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Main App Container */}
@@ -1422,253 +1841,262 @@ export default function RainwaterPageDashboard() {
           </p>
         </div>
 
-        {/* ================= SECTION 1: CALCULATOR INPUTS ================= */}
-        <section className="rd-panel" aria-labelledby="inputs-title">
-          <div className="rd-panel-header">
-            <h2 id="inputs-title" className="rd-panel-title">
-              📝 Catchment & Rainfall Inputs
-            </h2>
-            <span style={{ fontSize: "12px", color: "#64748b" }}>
-              Standard Formula: Area (m²) × Rainfall (mm) × Runoff Coeff
+        {/* ================= STEP 1: GEOGRAPHIC & CLIMATOLOGICAL BASELINE ================= */}
+        <section className="rd-step-card" aria-labelledby="step-1-title">
+          <div className="rd-step-header">
+            <div className="rd-step-badge-wrap">
+              <span className="rd-step-num">Step 1</span>
+              <span className="rd-step-tag">Location & Climate Baseline</span>
+            </div>
+            <span
+              style={{
+                fontSize: "12px",
+                background: apiData ? "#dcfce7" : "#eff6ff",
+                color: apiData ? "#166534" : "#1e40af",
+                border: apiData ? "1px solid #bbf7d0" : "1px solid #bfdbfe",
+                padding: "4px 12px",
+                borderRadius: "999px",
+                fontWeight: 600,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+              }}
+            >
+              {apiLoading ? (
+                <>⏳ Querying Meteorological Satellite...</>
+              ) : apiData ? (
+                <>🟢 Live API: {apiData.location.name}, {apiData.location.country}</>
+              ) : (
+                <>🏛️ Baseline: {district.source}</>
+              )}
             </span>
           </div>
 
-          {/* Location Selection & Meteorological API Intelligence */}
-          <div style={{ background: "#f8fbff", border: "1px solid #dce5fa", borderRadius: "18px", padding: "20px", marginBottom: "24px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px", flexWrap: "wrap", gap: "10px" }}>
-              <div>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "#1e3a8a", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span>🌍</span> Nation, State & District Meteorological Intelligence
+          <h2 id="step-1-title" className="rd-step-title">
+            <span>🌍</span> Geographic & Meteorological Intelligence
+          </h2>
+          <p className="rd-step-desc">
+            Select your region to load official 30-year climatological normals, or search any city worldwide to query real-time satellite and station precipitation archives.
+          </p>
+
+          {/* 3 Cascading Selectors: Nation -> State -> District */}
+          <div className="rd-grid-3">
+            <div className="rd-field">
+              <label className="rd-label" htmlFor="country-select">
+                <span>🏳️ 1. Nation / Country</span>
+                <span style={{ fontSize: "11px", color: "#64748b" }}>
+                  {availableCountries.length > 0 ? `${availableCountries.length} nations` : "Loading..."}
                 </span>
-                <span style={{ fontSize: "12px", color: "#64748b", display: "block", marginTop: "2px" }}>
-                  Select your region to load official 30-year climate normals or query real satellite/station archives for past years.
-                </span>
-              </div>
-              <span
-                style={{
-                  fontSize: "11.5px",
-                  background: apiData ? "#dcfce7" : "#eff6ff",
-                  color: apiData ? "#166534" : "#1e40af",
-                  border: apiData ? "1px solid #bbf7d0" : "1px solid #bfdbfe",
-                  padding: "4px 12px",
-                  borderRadius: "999px",
-                  fontWeight: 600,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "5px",
-                }}
+              </label>
+              <select
+                id="country-select"
+                className="rd-select"
+                value={selectedCountryName}
+                onChange={(e) => handleCountryNameChange(e.target.value)}
               >
-                {apiLoading ? (
-                  <>⏳ Fetching Meteorological Archive...</>
-                ) : apiData ? (
-                  <>🟢 Live API: {apiData.location.name}, {apiData.location.country}</>
-                ) : (
-                  <>🏛️ Baseline: {district.source}</>
-                )}
-              </span>
+                {(availableCountries.length > 0
+                  ? availableCountries
+                  : [{ name: "India" }, { name: "United States" }, { name: "United Kingdom" }, { name: "Australia" }, { name: "United Arab Emirates" }, { name: "Canada" }, { name: "Germany" }]
+                ).map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* 3 Cascading Selectors: Nation -> State -> District */}
-            <div className="rd-grid-3">
-              <div className="rd-field">
-                <label className="rd-label" htmlFor="country-select">
-                  <span>🏳️ 1. Nation / Country</span>
-                  <span style={{ fontSize: "11px", color: "#64748b" }}>
-                    {availableCountries.length > 0 ? `${availableCountries.length} nations` : "Loading..."}
-                  </span>
-                </label>
+            <div className="rd-field">
+              <label className="rd-label" htmlFor="state-select">
+                <span>🏛️ 2. State / Region</span>
+                <span style={{ fontSize: "11px", color: "#64748b" }}>
+                  {loadingStates ? "⏳ Loading..." : availableStates.length > 0 ? `${availableStates.length} states` : ""}
+                </span>
+              </label>
+              <select
+                id="state-select"
+                className="rd-select"
+                value={selectedStateName}
+                onChange={(e) => handleStateNameChange(e.target.value)}
+                disabled={loadingStates}
+              >
+                {availableStates.length > 0 ? (
+                  availableStates.map((s) => (
+                    <option key={s.name} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))
+                ) : (
+                  <option value={selectedStateName}>{selectedStateName}</option>
+                )}
+              </select>
+            </div>
+
+            <div className="rd-field">
+              <label className="rd-label" htmlFor="district-select">
+                <span>📍 3. District / City</span>
+                <span style={{ fontSize: "11px", color: "#64748b" }}>
+                  {loadingCities ? "⏳ Loading..." : availableCities.length > 0 ? `${availableCities.length} cities` : ""}
+                </span>
+              </label>
+              {availableCities.length > 0 ? (
                 <select
-                  id="country-select"
+                  id="district-select"
                   className="rd-select"
-                  value={selectedCountryName}
-                  onChange={(e) => handleCountryNameChange(e.target.value)}
+                  value={selectedDistrictName}
+                  onChange={(e) => handleDistrictNameChange(e.target.value)}
+                  disabled={loadingCities}
                 >
-                  {(availableCountries.length > 0
-                    ? availableCountries
-                    : [{ name: "India" }, { name: "United States" }, { name: "United Kingdom" }, { name: "Australia" }, { name: "United Arab Emirates" }, { name: "Canada" }, { name: "Germany" }]
-                  ).map((c) => (
-                    <option key={c.name} value={c.name}>
-                      {c.name}
+                  {availableCities.map((cityName) => (
+                    <option key={cityName} value={cityName}>
+                      {cityName}
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div className="rd-field">
-                <label className="rd-label" htmlFor="state-select">
-                  <span>🏛️ 2. State / Region</span>
-                  <span style={{ fontSize: "11px", color: "#64748b" }}>
-                    {loadingStates ? "⏳ Loading..." : availableStates.length > 0 ? `${availableStates.length} states` : ""}
-                  </span>
-                </label>
-                <select
-                  id="state-select"
-                  className="rd-select"
-                  value={selectedStateName}
-                  onChange={(e) => handleStateNameChange(e.target.value)}
-                  disabled={loadingStates}
-                >
-                  {availableStates.length > 0 ? (
-                    availableStates.map((s) => (
-                      <option key={s.name} value={s.name}>
-                        {s.name}
-                      </option>
-                    ))
-                  ) : (
-                    <option value={selectedStateName}>{selectedStateName}</option>
-                  )}
-                </select>
-              </div>
-
-              <div className="rd-field">
-                <label className="rd-label" htmlFor="district-select">
-                  <span>📍 3. District / City</span>
-                  <span style={{ fontSize: "11px", color: "#64748b" }}>
-                    {loadingCities ? "⏳ Loading..." : availableCities.length > 0 ? `${availableCities.length} cities` : ""}
-                  </span>
-                </label>
-                {availableCities.length > 0 ? (
-                  <select
-                    id="district-select"
-                    className="rd-select"
-                    value={selectedDistrictName}
-                    onChange={(e) => handleDistrictNameChange(e.target.value)}
-                    disabled={loadingCities}
-                  >
-                    {availableCities.map((cityName) => (
-                      <option key={cityName} value={cityName}>
-                        {cityName}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    id="district-select"
-                    type="text"
-                    className="rd-input"
-                    value={selectedDistrictName}
-                    onChange={(e) => handleDistrictNameChange(e.target.value)}
-                    placeholder="Enter city / district name"
-                  />
-                )}
-              </div>
-            </div>
-
-            {/* Worldwide Custom Location Search & API Fetch Action */}
-            <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px dashed #dce5fa", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
-              <div style={{ flex: "1 1 240px", position: "relative" }}>
+              ) : (
                 <input
+                  id="district-select"
                   type="text"
                   className="rd-input"
-                  style={{ paddingLeft: "34px", width: "100%", fontSize: "13px" }}
-                  placeholder="Or search any custom city / district worldwide (e.g. Pune, Jaipur, London, Austin...)"
-                  value={worldwideSearchQuery}
-                  onChange={(e) => setWorldwideSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && worldwideSearchQuery.trim()) {
-                      fetchMeteorologicalApi(worldwideSearchQuery.trim());
-                    }
-                  }}
+                  value={selectedDistrictName}
+                  onChange={(e) => handleDistrictNameChange(e.target.value)}
+                  placeholder="Enter city / district name"
                 />
-                <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "13px", opacity: 0.5 }}>🔍</span>
-              </div>
-
-              <button
-                type="button"
-                className="rd-secondary-btn"
-                style={{
-                  padding: "10px 18px",
-                  fontSize: "13px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  background: apiLoading ? "#f1f5f9" : "#4773ec",
-                  color: "#ffffff",
-                  borderColor: "#3b82f6",
-                }}
-                disabled={apiLoading}
-                onClick={() => {
-                  if (worldwideSearchQuery.trim()) {
-                    fetchMeteorologicalApi(worldwideSearchQuery.trim());
-                  } else {
-                    fetchMeteorologicalApi();
-                  }
-                }}
-              >
-                {apiLoading ? "⏳ Querying Meteorological Satellite API..." : "🛰️ Fetch Past & Average Rainfall API"}
-              </button>
-            </div>
-
-            {/* API Error Notification (if any) */}
-            {apiError && (
-              <div style={{ marginTop: "10px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "10px 14px", fontSize: "12.5px", color: "#991b1b" }}>
-                ⚠️ {apiError}
-              </div>
-            )}
-
-            {/* Historical Past Years & Climatological Normal Selector Pills */}
-            <div style={{ marginTop: "14px", background: "#ffffff", border: "1px solid #dce5fa", borderRadius: "14px", padding: "14px" }}>
-              <div style={{ fontSize: "12.5px", fontWeight: 700, color: "#1e3a8a", marginBottom: "8px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "6px" }}>
-                <span>📊 Select Rainfall Data Mode to Apply to Calculator:</span>
-                <span style={{ fontSize: "11px", color: "#64748b" }}>Click any record to auto-fill rainfall & monthly breakdown:</span>
-              </div>
-
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-                {/* 30-Year Climatological Baseline Normal */}
-                <button
-                  type="button"
-                  onClick={() => selectDataSource("climate_normal")}
-                  className={`rd-tag-btn ${activeRainfallSource === "climate_normal" ? "active" : ""}`}
-                >
-                  🏛️ 30-Yr Normal: {district.annualRainfallMm} mm (Baseline)
-                </button>
-
-                {/* If API data loaded, display past years & multi-year average */}
-                {apiData && (
-                  <>
-                    {apiData.pastYears.map((py) => (
-                      <button
-                        key={py.year}
-                        type="button"
-                        onClick={() => selectDataSource(`past_year_${py.year}`, py)}
-                        className={`rd-tag-btn ${activeRainfallSource === `past_year_${py.year}` ? "active" : ""}`}
-                      >
-                        📅 {py.year} Recorded: {py.annualMm} mm
-                      </button>
-                    ))}
-
-                    <button
-                      type="button"
-                      onClick={() => selectDataSource("multi_year_avg")}
-                      className={`rd-tag-btn ${activeRainfallSource === "multi_year_avg" ? "active" : ""}`}
-                    >
-                      📈 4-Yr Past Avg: {apiData.multiYearAverageMm} mm
-                    </button>
-                  </>
-                )}
-              </div>
-
-              {/* Data Insight & Comparative Explanation */}
-              <div style={{ marginTop: "10px", fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>
-                {apiData ? (
-                  <span>
-                    💡 <strong>Meteorological Comparison:</strong> In {activeRainfallSource.includes("past_year") ? activeRainfallSource.replace("past_year_", "") : "recent observations"}, {apiData.location.name} recorded {rainfallInput} mm rainfall
-                    {district.annualRainfallMm > 0 ? (
-                      <>
-                        {" "}
-                        ({parseFloat(rainfallInput) >= district.annualRainfallMm ? "+" : ""}
-                        {((((parseFloat(rainfallInput) || district.annualRainfallMm) - district.annualRainfallMm) / district.annualRainfallMm) * 100).toFixed(1)}% compared to the {district.annualRainfallMm} mm 30-year normal average).
-                      </>
-                    ) : null}
-                  </span>
-                ) : (
-                  <span>
-                    💡 <strong>Engineering Note:</strong> The 30-year climatological normal ({district.annualRainfallMm} mm) provides a statistically verified long-term standard for storage cistern design. Click the <em>Fetch Past & Average Rainfall API</em> button above to load satellite observations for recent years (2024, 2023, 2022, 2021).
-                  </span>
-                )}
-              </div>
+              )}
             </div>
           </div>
+
+          {/* Worldwide Custom Location Search & API Fetch Action */}
+          <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px dashed #dce5fa", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ flex: "1 1 240px", position: "relative" }}>
+              <input
+                type="text"
+                className="rd-input"
+                style={{ paddingLeft: "34px", width: "100%", fontSize: "13px" }}
+                placeholder="Or search any custom city / district worldwide (e.g. Pune, Jaipur, London, Austin...)"
+                value={worldwideSearchQuery}
+                onChange={(e) => setWorldwideSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && worldwideSearchQuery.trim()) {
+                    fetchMeteorologicalApi(worldwideSearchQuery.trim());
+                  }
+                }}
+              />
+              <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", fontSize: "13px", opacity: 0.5 }}>🔍</span>
+            </div>
+
+            <button
+              type="button"
+              className="rd-secondary-btn"
+              style={{
+                padding: "10px 18px",
+                fontSize: "13px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                background: apiLoading ? "#f1f5f9" : "#4773ec",
+                color: "#ffffff",
+                borderColor: "#3b82f6",
+              }}
+              disabled={apiLoading}
+              onClick={() => {
+                if (worldwideSearchQuery.trim()) {
+                  fetchMeteorologicalApi(worldwideSearchQuery.trim());
+                } else {
+                  fetchMeteorologicalApi();
+                }
+              }}
+            >
+              {apiLoading ? "⏳ Querying Meteorological Satellite API..." : "🛰️ Fetch Past & Average Rainfall API"}
+            </button>
+          </div>
+
+          {/* API Error Notification (if any) */}
+          {apiError && (
+            <div style={{ marginTop: "10px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", padding: "10px 14px", fontSize: "12.5px", color: "#991b1b" }}>
+              ⚠️ {apiError}
+            </div>
+          )}
+
+          {/* Historical Past Years & Climatological Normal Selector Pills */}
+          <div style={{ marginTop: "16px", background: "#f8fbff", border: "1px solid #dce5fa", borderRadius: "16px", padding: "16px" }}>
+            <div style={{ fontSize: "12.5px", fontWeight: 700, color: "#1e3a8a", marginBottom: "8px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "6px" }}>
+              <span>📊 Select Rainfall Data Mode to Apply to Calculator:</span>
+              <span style={{ fontSize: "11px", color: "#64748b" }}>Click any record to auto-fill rainfall & monthly breakdown:</span>
+            </div>
+
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+              {/* 30-Year Climatological Baseline Normal */}
+              <button
+                type="button"
+                onClick={() => selectDataSource("climate_normal")}
+                className={`rd-tag-btn ${activeRainfallSource === "climate_normal" ? "active" : ""}`}
+              >
+                🏛️ 30-Yr Normal: {district.annualRainfallMm} mm (Baseline)
+              </button>
+
+              {/* If API data loaded, display past years & multi-year average */}
+              {apiData && (
+                <>
+                  {apiData.pastYears.map((py) => (
+                    <button
+                      key={py.year}
+                      type="button"
+                      onClick={() => selectDataSource(`past_year_${py.year}`, py)}
+                      className={`rd-tag-btn ${activeRainfallSource === `past_year_${py.year}` ? "active" : ""}`}
+                    >
+                      📅 {py.year} Recorded: {py.annualMm} mm
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => selectDataSource("multi_year_avg")}
+                    className={`rd-tag-btn ${activeRainfallSource === "multi_year_avg" ? "active" : ""}`}
+                  >
+                    📈 4-Yr Past Avg: {apiData.multiYearAverageMm} mm
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Data Insight & Comparative Explanation */}
+            <div style={{ marginTop: "10px", fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>
+              {apiData ? (
+                <span>
+                  💡 <strong>Meteorological Comparison:</strong> In {activeRainfallSource.includes("past_year") ? activeRainfallSource.replace("past_year_", "") : "recent observations"}, {apiData.location.name} recorded {rainfallInput} mm rainfall
+                  {district.annualRainfallMm > 0 ? (
+                    <>
+                      {" "}
+                      ({parseFloat(rainfallInput) >= district.annualRainfallMm ? "+" : ""}
+                      {((((parseFloat(rainfallInput) || district.annualRainfallMm) - district.annualRainfallMm) / district.annualRainfallMm) * 100).toFixed(1)}% compared to the {district.annualRainfallMm} mm 30-year normal average).
+                    </>
+                  ) : null}
+                </span>
+              ) : (
+                <span>
+                  💡 <strong>Engineering Note:</strong> The 30-year climatological normal ({district.annualRainfallMm} mm) provides a statistically verified long-term standard for storage cistern design. Click the <em>Fetch Past & Average Rainfall API</em> button above to load satellite observations for recent years (2024, 2023, 2022, 2021).
+                </span>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* ================= STEP 2: CATCHMENT & ROOFTOP SPECIFICATION ================= */}
+        <section className="rd-step-card" aria-labelledby="step-2-title">
+          <div className="rd-step-header">
+            <div className="rd-step-badge-wrap">
+              <span className="rd-step-num">Step 2</span>
+              <span className="rd-step-tag">Catchment & Rainfall Depth</span>
+            </div>
+            <span className="rd-step-formula-pill">Formula: Area (m²) × Rainfall (mm) × Coeff</span>
+          </div>
+
+          <h2 id="step-2-title" className="rd-step-title">
+            <span>🏠</span> Catchment Footprint & Rooftop Material
+          </h2>
+          <p className="rd-step-desc">
+            Enter your rooftop catchment area and annual precipitation, then choose your roof material to apply the appropriate hydraulic runoff coefficient.
+          </p>
 
           {/* 1. Roof Area & 2. Annual Rainfall */}
           <div className="rd-grid-2">
@@ -1791,7 +2219,7 @@ export default function RainwaterPageDashboard() {
           </div>
 
           {/* 6. OPTIONAL MONTHLY RAINFALL TOGGLE */}
-          <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "18px", marginBottom: "22px" }}>
+          <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "18px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
               <div>
                 <span style={{ fontSize: "14px", fontWeight: 700, color: "#1e293b" }}>
@@ -1818,7 +2246,7 @@ export default function RainwaterPageDashboard() {
                   Enter rainfall for each month in millimetres (mm). The sum will automatically update your annual calculation:
                 </p>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(75px, 1fr))", gap: "10px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 75px), 1fr))", gap: "10px" }}>
                   {MONTH_NAMES.map((mName, idx) => (
                     <div key={mName} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                       <label htmlFor={`month-input-${idx}`} style={{ fontSize: "11.5px", fontWeight: 700, color: "#334155", textAlign: "center" }}>
@@ -1847,92 +2275,105 @@ export default function RainwaterPageDashboard() {
               </div>
             )}
           </div>
+        </section>
 
-          {/* 8. HOUSEHOLD DEMAND & 9. FINANCIAL PARAMETERS */}
-          <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "18px", marginBottom: "26px" }}>
-            <span style={{ fontSize: "14px", fontWeight: 700, color: "#1e293b", display: "block", marginBottom: "14px" }}>
-              👥 Household Water Demand & Financial Parameters (For Savings & Sizing)
-            </span>
+        {/* ================= STEP 3: HOUSEHOLD DEMAND & FINANCIAL ASSUMPTIONS ================= */}
+        <section className="rd-step-card" aria-labelledby="step-3-title">
+          <div className="rd-step-header">
+            <div className="rd-step-badge-wrap">
+              <span className="rd-step-num">Step 3</span>
+              <span className="rd-step-tag">Household Demand & Economics</span>
+            </div>
+            <span className="rd-step-formula-pill">Benchmark: 135 L/person/day</span>
+          </div>
 
-            <div className="rd-grid-3">
-              <div className="rd-field">
-                <label className="rd-label" htmlFor="occupants-input">
-                  <span>Number of People</span>
-                  <span style={{ color: "#2563eb" }}>Persons</span>
-                </label>
-                <input
-                  id="occupants-input"
-                  type="number"
-                  min="1"
-                  className={`rd-input ${errors.occupants ? "rd-input-error" : ""}`}
-                  value={occupantsInput}
-                  onChange={(e) => setOccupantsInput(e.target.value)}
-                />
-                {errors.occupants ? (
-                  <span className="rd-err-msg">{errors.occupants}</span>
-                ) : (
-                  <span className="rd-field-hint">Household members relying on water.</span>
-                )}
-              </div>
+          <h2 id="step-3-title" className="rd-step-title">
+            <span>👥</span> Household Water Consumption & Tariff Assumptions
+          </h2>
+          <p className="rd-step-desc">
+            Define your household water usage and municipal utility rate to estimate demand coverage percentage, size storage buffers, and project monetary savings.
+          </p>
 
-              <div className="rd-field">
-                <label className="rd-label" htmlFor="consumption-input">
-                  <span>Daily Use per Person</span>
-                  <span style={{ color: "#2563eb" }}>L / day</span>
-                </label>
-                <input
-                  id="consumption-input"
-                  type="number"
-                  min="1"
-                  className={`rd-input ${errors.consumption ? "rd-input-error" : ""}`}
-                  value={dailyConsumptionInput}
-                  onChange={(e) => setDailyConsumptionInput(e.target.value)}
-                />
-                {errors.consumption ? (
-                  <span className="rd-err-msg">{errors.consumption}</span>
-                ) : (
-                  <span className="rd-field-hint">Standard benchmark: 135 L/person/day.</span>
-                )}
-              </div>
+          <div className="rd-grid-3">
+            <div className="rd-field">
+              <label className="rd-label" htmlFor="occupants-input">
+                <span>Number of People</span>
+                <span style={{ color: "#2563eb" }}>Persons</span>
+              </label>
+              <input
+                id="occupants-input"
+                type="number"
+                min="1"
+                className={`rd-input ${errors.occupants ? "rd-input-error" : ""}`}
+                value={occupantsInput}
+                onChange={(e) => setOccupantsInput(e.target.value)}
+              />
+              {errors.occupants ? (
+                <span className="rd-err-msg">{errors.occupants}</span>
+              ) : (
+                <span className="rd-field-hint">Household members relying on water.</span>
+              )}
+            </div>
 
-              <div className="rd-field">
-                <label className="rd-label" htmlFor="water-cost-input">
-                  <span>Water Tariff / Cost</span>
-                  <span style={{ color: "#2563eb" }}>{currencySymbol} per kL</span>
-                </label>
-                <input
-                  id="water-cost-input"
-                  type="number"
-                  min="0"
-                  step="any"
-                  className="rd-input"
-                  value={waterCostInput}
-                  onChange={(e) => setWaterCostInput(e.target.value)}
-                />
-                <span className="rd-field-hint">Cost per 1,000 Litres (1 kL) of municipal/tanker water.</span>
-              </div>
+            <div className="rd-field">
+              <label className="rd-label" htmlFor="consumption-input">
+                <span>Daily Use per Person</span>
+                <span style={{ color: "#2563eb" }}>L / day</span>
+              </label>
+              <input
+                id="consumption-input"
+                type="number"
+                min="1"
+                className={`rd-input ${errors.consumption ? "rd-input-error" : ""}`}
+                value={dailyConsumptionInput}
+                onChange={(e) => setDailyConsumptionInput(e.target.value)}
+              />
+              {errors.consumption ? (
+                <span className="rd-err-msg">{errors.consumption}</span>
+              ) : (
+                <span className="rd-field-hint">Standard benchmark: 135 L/person/day.</span>
+              )}
+            </div>
+
+            <div className="rd-field">
+              <label className="rd-label" htmlFor="water-cost-input">
+                <span>Water Tariff / Cost</span>
+                <span style={{ color: "#2563eb" }}>{currencySymbol} per kL</span>
+              </label>
+              <input
+                id="water-cost-input"
+                type="number"
+                min="0"
+                step="any"
+                className="rd-input"
+                value={waterCostInput}
+                onChange={(e) => setWaterCostInput(e.target.value)}
+              />
+              <span className="rd-field-hint">Cost per 1,000 Litres (1 kL) of municipal/tanker water.</span>
             </div>
           </div>
-
-          {/* Action Bar (Calculate Button & Reset Button) */}
-          <div className="rd-btn-bar">
-            <button
-              type="button"
-              className="rd-primary-btn"
-              onClick={handleCalculateClick}
-            >
-              🧮 Calculate Rainwater Harvest
-            </button>
-
-            <button
-              type="button"
-              className="rd-secondary-btn"
-              onClick={handleReset}
-            >
-              🔄 Reset / Clear Inputs
-            </button>
-          </div>
         </section>
+
+        {/* Calculation Action Bar */}
+        <div className="rd-action-bar">
+          <button
+            type="button"
+            className="rd-primary-calculate-btn"
+            onClick={handleCalculateClick}
+          >
+            <span>🧮</span>
+            <span>Calculate Rainwater Harvest</span>
+          </button>
+
+          <button
+            type="button"
+            className="rd-secondary-reset-btn"
+            onClick={handleReset}
+          >
+            <span>🔄</span>
+            <span>Reset / Clear Inputs</span>
+          </button>
+        </div>
 
         {/* ================= SECTION 2: RESULTS DASHBOARD ================= */}
         <div ref={resultsRef}>

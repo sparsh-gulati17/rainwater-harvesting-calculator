@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 
 export default function HowItWorksPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="hiw-wrap">
       <style>{`
@@ -16,6 +18,7 @@ export default function HowItWorksPage() {
           box-sizing: border-box;
           padding: 0;
           margin: 0;
+          overflow-x: clip;
         }
 
         .hiw-header {
@@ -140,7 +143,7 @@ export default function HowItWorksPage() {
 
         .hiw-steps-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
           gap: 24px;
           margin-bottom: 60px;
         }
@@ -151,7 +154,7 @@ export default function HowItWorksPage() {
           border-radius: 20px;
           padding: 32px 28px;
           box-shadow: 0 4px 20px rgba(24, 60, 115, 0.04);
-          transition: transform 0.2s, box-shadow 0.2s;
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
         }
 
         .hiw-card:hover {
@@ -231,6 +234,8 @@ export default function HowItWorksPage() {
           color: #1e40af;
           margin: 16px 0;
           border: 1px dashed #bfdbfe;
+          overflow-x: auto;
+          word-break: break-word;
         }
 
         .hiw-bottom-cta {
@@ -276,15 +281,115 @@ export default function HowItWorksPage() {
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
         }
 
+        /* Mobile toggle & drawer */
+        .hiw-mobile-toggle-btn {
+          display: none;
+          align-items: center;
+          justify-content: center;
+          width: 44px;
+          height: 44px;
+          background: #f1f5f9;
+          border: 1px solid #dce5fa;
+          border-radius: 12px;
+          color: #080e2b;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          padding: 0;
+          flex-shrink: 0;
+        }
+
+        .hiw-mobile-toggle-btn:hover {
+          background: #e2e8f0;
+          color: #2563eb;
+        }
+
+        .hiw-mobile-drawer {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          background: #ffffff;
+          border-top: 1px solid #e2e8f0;
+          border-bottom: 1px solid #dce5fa;
+          padding: 16px 20px 20px;
+          box-shadow: 0 12px 30px rgba(24, 60, 115, 0.08);
+          animation: hiwDrawerSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes hiwDrawerSlide {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .hiw-mobile-nav-link {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 14px;
+          border-radius: 12px;
+          font-size: 14.5px;
+          font-weight: 600;
+          color: #334155;
+          text-decoration: none;
+          transition: background 0.15s ease, color 0.15s ease;
+          min-height: 44px;
+          box-sizing: border-box;
+        }
+
+        .hiw-mobile-nav-link:hover {
+          background: #f1f5f9;
+          color: #2563eb;
+        }
+
+        .hiw-mobile-nav-link.active {
+          background: #eff6ff;
+          color: #2563eb;
+          font-weight: 700;
+        }
+
         @media (max-width: 768px) {
           .hiw-header-inner {
-            padding: 14px 18px;
+            padding: 12px 16px;
           }
           .hiw-nav {
             display: none;
           }
+          .hiw-cta-btn {
+            display: none;
+          }
+          .hiw-mobile-toggle-btn {
+            display: flex;
+          }
           .hiw-content {
-            padding: 40px 18px 60px;
+            padding: 36px 16px 60px;
+          }
+          .hiw-formula-box {
+            padding: 24px 18px;
+          }
+          .hiw-bottom-cta {
+            padding: 36px 20px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .hiw-content {
+            padding: 28px 12px 50px;
+          }
+          .hiw-card {
+            padding: 24px 18px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation: none !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
           }
         }
       `}</style>
@@ -307,8 +412,9 @@ export default function HowItWorksPage() {
             <span className="hiw-brand-title">Rainova</span>
           </Link>
 
-          <nav className="hiw-nav">
+          <nav className="hiw-nav" aria-label="Desktop Navigation">
             <Link href="/" className="hiw-nav-link">Home (Globe)</Link>
+            <Link href="/calculate" className="hiw-nav-link">Calculator</Link>
             <Link href="/how-it-works" className="hiw-nav-link active">How It Works</Link>
             <Link href="/about" className="hiw-nav-link">About</Link>
           </nav>
@@ -319,7 +425,47 @@ export default function HowItWorksPage() {
               <path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </Link>
+
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            type="button"
+            className="hiw-mobile-toggle-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-expanded={mobileMenuOpen}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            ) : (
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"></line>
+                <line x1="4" y1="12" x2="20" y2="12"></line>
+                <line x1="4" y1="18" x2="20" y2="18"></line>
+              </svg>
+            )}
+          </button>
         </div>
+
+        {/* Mobile Slide-down Drawer */}
+        {mobileMenuOpen && (
+          <nav className="hiw-mobile-drawer" aria-label="Mobile Navigation">
+            <Link href="/" className="hiw-mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>
+              <span>🌐</span> Home (3D Globe)
+            </Link>
+            <Link href="/calculate" className="hiw-mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>
+              <span>🧮</span> Calculator & Dashboard
+            </Link>
+            <Link href="/how-it-works" className="hiw-mobile-nav-link active" onClick={() => setMobileMenuOpen(false)}>
+              <span>📘</span> How It Works
+            </Link>
+            <Link href="/about" className="hiw-mobile-nav-link" onClick={() => setMobileMenuOpen(false)}>
+              <span>👥</span> About Rainova
+            </Link>
+          </nav>
+        )}
       </header>
 
       {/* Content */}

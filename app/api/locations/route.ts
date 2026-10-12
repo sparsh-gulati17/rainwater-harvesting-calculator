@@ -1,10 +1,26 @@
 import { NextResponse } from "next/server";
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
-// In-memory caches to store AI-generated locations and prevent API rate-limits
+// In-memory caches to store AI-generated locations and autocomplete search results
 const aiCountryCache = new Map<string, any[]>();
 const aiStateCache = new Map<string, Array<{ name: string; code?: string }>>();
 const aiCityCache = new Map<string, string[]>();
+
+interface CachedSearchSuggestion {
+  id: string;
+  name: string;
+  region: string;
+  country: string;
+  label: string;
+  lat?: number;
+  lon?: number;
+}
+
+const searchSuggestionCache = new Map<
+  string,
+  { suggestions: CachedSearchSuggestion[]; expiresAt: number }
+>();
+const SEARCH_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 // Helper: Normalize and clean names removing macrons, diacritics, and transliterations
 function cleanString(str: string): string {
@@ -46,10 +62,12 @@ Rules:
         Authorization: `Bearer ${GROQ_API_KEY}`,
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(3500),
       body: JSON.stringify({
         model: "qwen/qwen3.8-27b",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.1,
+        reasoning_effort: "none",
         response_format: { type: "json_object" },
       }),
     });
@@ -97,10 +115,12 @@ Rules:
         Authorization: `Bearer ${GROQ_API_KEY}`,
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(3500),
       body: JSON.stringify({
         model: "qwen/qwen3.8-27b",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.1,
+        reasoning_effort: "none",
         response_format: { type: "json_object" },
       }),
     });
@@ -169,10 +189,12 @@ Rules:
         Authorization: `Bearer ${GROQ_API_KEY}`,
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(3500),
       body: JSON.stringify({
         model: "qwen/qwen3.8-27b",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.1,
+        reasoning_effort: "none",
         response_format: { type: "json_object" },
       }),
     });
@@ -458,30 +480,12 @@ export async function GET(request: Request) {
     // 1. Fetch Countries List (AI Powered)
     // ------------------------------------------------------------------------
     if (type === "countries") {
-      if (aiCountryCache.has("countries")) {
-        return NextResponse.json({
-          success: true,
-          countries: aiCountryCache.get("countries"),
-          source: "Groq AI Cache",
-        });
+      if (!aiCountryCache.has("countries")) {
+        aiCountryCache.set("countries", AI_KNOWLEDGE_COUNTRIES);
       }
-
-      // Try live Groq AI generation
-      const aiCountries = await fetchCountriesViaAI();
-      if (aiCountries && aiCountries.length > 0) {
-        aiCountryCache.set("countries", aiCountries);
-        return NextResponse.json({
-          success: true,
-          countries: aiCountries,
-          source: "Groq AI Generator",
-        });
-      }
-
-      // Instant high-availability AI fallback
-      aiCountryCache.set("countries", AI_KNOWLEDGE_COUNTRIES);
       return NextResponse.json({
         success: true,
-        countries: AI_KNOWLEDGE_COUNTRIES,
+        countries: aiCountryCache.get("countries"),
         source: "AI Knowledge Registry",
       });
     }
@@ -594,6 +598,247 @@ export async function GET(request: Request) {
         state,
         cities: [state],
         source: "Fallback",
+      });
+    }
+
+    // ------------------------------------------------------------------------
+    // 4. Live Autocomplete Search for Cities, Towns & Regions (type=search)
+    // ------------------------------------------------------------------------
+    if (type === "search") {
+      const rawQuery = (searchParams.get("q") || "").trim();
+      if (rawQuery.length < 2) {
+        return NextResponse.json({
+          success: true,
+          query: rawQuery,
+          suggestions: [],
+        });
+      }
+
+      const qLower = rawQuery.toLowerCase().replace(/\s+/g, " ");
+      const cachedEntry = searchSuggestionCache.get(qLower);
+      if (cachedEntry) {
+        if (cachedEntry.expiresAt > Date.now()) {
+          return NextResponse.json({
+            success: true,
+            query: rawQuery,
+            suggestions: cachedEntry.suggestions,
+            cached: true,
+          });
+        }
+        searchSuggestionCache.delete(qLower);
+      }
+
+      const parts = rawQuery.split(",").map((p) => p.trim()).filter(Boolean);
+      const placeQuery = parts[0] || rawQuery;
+      const contextQuery = parts.slice(1).join(" ").toLowerCase();
+      const placeLower = placeQuery.toLowerCase();
+
+      // Common alias mapping for renamed districts where Open-Meteo indexes the historical spelling
+      const SEARCH_ALIASES: Record<string, string> = {
+        ahilyanagar: "Ahmednagar",
+        sambhajinagar: "Aurangabad",
+        dharashiv: "Osmanabad",
+        prayagraj: "Allahabad",
+        ayodhya: "Faizabad",
+        gurugram: "Gurgaon",
+        bengaluru: "Bangalore",
+        mysuru: "Mysore",
+        mangaluru: "Mangalore",
+        hubballi: "Hubli",
+        belagavi: "Belgaum",
+        kalaburagi: "Gulbarga",
+        vijayapura: "Bijapur",
+        bombay: "Mumbai",
+        madras: "Chennai",
+        calcutta: "Kolkata",
+      };
+
+      interface LocationSuggestion extends CachedSearchSuggestion {
+        population?: number;
+      }
+
+      const dedupMap = new Map<string, LocationSuggestion>();
+
+      const isValidCoord = (lat?: number, lon?: number): boolean =>
+        typeof lat === "number" &&
+        typeof lon === "number" &&
+        isFinite(lat) &&
+        isFinite(lon) &&
+        Math.abs(lat) <= 90 &&
+        Math.abs(lon) <= 180 &&
+        !(lat === 0 && lon === 0);
+
+      const addSuggestion = (
+        name: string,
+        region: string,
+        country: string,
+        population = 0,
+        lat?: number,
+        lon?: number
+      ) => {
+        const cName = cleanString(name);
+        const cRegion = cleanString(region);
+        const cCountry = cleanString(country);
+        if (!cName || !cCountry) return;
+
+        // If the user typed a comma context (e.g. "London, Canada" or "Pune, India"), filter by it
+        if (contextQuery) {
+          const hay = `${cRegion} ${cCountry}`.toLowerCase();
+          const contextTokens = contextQuery.split(/\s+/).filter(Boolean);
+          const matchesContext = contextTokens.every((t) => hay.includes(t));
+          if (!matchesContext) return;
+        }
+
+        const key = `${cName.toLowerCase()}|${cRegion.toLowerCase()}|${cCountry.toLowerCase()}`;
+        const existing = dedupMap.get(key);
+        const validCoords = isValidCoord(lat, lon);
+        if (!existing) {
+          const label = [cName, cRegion, cCountry].filter(Boolean).join(", ");
+          dedupMap.set(key, {
+            id: key,
+            name: cName,
+            region: cRegion,
+            country: cCountry,
+            label,
+            population,
+            ...(validCoords ? { lat, lon } : {}),
+          });
+        } else {
+          existing.population = Math.max(existing.population || 0, population);
+          if (validCoords && existing.lat === undefined) {
+            existing.lat = lat;
+            existing.lon = lon;
+          }
+        }
+      };
+
+      // A. Match against curated local registry first (preserves parenthetical aliases & major districts)
+      const STATE_COUNTRY_MAP: Record<string, { stateDisplay: string; countryDisplay: string }> = {
+        maharashtra: { stateDisplay: "Maharashtra", countryDisplay: "India" },
+        delhi: { stateDisplay: "Delhi", countryDisplay: "India" },
+        karnataka: { stateDisplay: "Karnataka", countryDisplay: "India" },
+        "tamil nadu": { stateDisplay: "Tamil Nadu", countryDisplay: "India" },
+        telangana: { stateDisplay: "Telangana", countryDisplay: "India" },
+        meghalaya: { stateDisplay: "Meghalaya", countryDisplay: "India" },
+        rajasthan: { stateDisplay: "Rajasthan", countryDisplay: "India" },
+        "uttar pradesh": { stateDisplay: "Uttar Pradesh", countryDisplay: "India" },
+        gujarat: { stateDisplay: "Gujarat", countryDisplay: "India" },
+        california: { stateDisplay: "California", countryDisplay: "United States" },
+        texas: { stateDisplay: "Texas", countryDisplay: "United States" },
+        england: { stateDisplay: "England", countryDisplay: "United Kingdom" },
+      };
+
+      for (const [stateKey, cities] of Object.entries(AI_KNOWLEDGE_CITIES)) {
+        const meta = STATE_COUNTRY_MAP[stateKey];
+        if (!meta) continue;
+        for (const city of cities) {
+          const cLow = city.toLowerCase();
+          const sLow = meta.stateDisplay.toLowerCase();
+          if (
+            cLow.includes(placeLower) ||
+            (placeLower.length >= 3 && sLow.includes(placeLower)) ||
+            `${cLow}, ${sLow}, ${meta.countryDisplay.toLowerCase()}`.includes(qLower)
+          ) {
+            addSuggestion(city, meta.stateDisplay, meta.countryDisplay, 500000);
+          }
+        }
+      }
+
+      // B. Query Open-Meteo Geocoding API in parallel for real-time worldwide cities, towns, and regions
+      const searchTerms = [placeQuery];
+      for (const [k, v] of Object.entries(SEARCH_ALIASES)) {
+        if (placeLower.includes(k) && !searchTerms.includes(v)) {
+          searchTerms.push(v);
+        }
+      }
+
+      const geoResponses = await Promise.all(
+        searchTerms.slice(0, 2).map(async (term) => {
+          try {
+            const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+              term
+            )}&count=12&language=en&format=json`;
+            const geoRes = await fetch(geoUrl, {
+              headers: { "User-Agent": "Rainova-App/1.0" },
+              signal: AbortSignal.timeout(1800),
+            });
+            if (geoRes.ok) {
+              const geoJson = await geoRes.json();
+              return Array.isArray(geoJson?.results) ? geoJson.results : [];
+            }
+          } catch (err) {
+            console.warn("Open-Meteo autocomplete lookup warning:", err);
+          }
+          return [];
+        })
+      );
+
+      for (const results of geoResponses) {
+        for (const r of results) {
+          const name = cleanString(r.name || "");
+          const admin1 = cleanString(r.admin1 || "");
+          const admin2 = cleanString(r.admin2 || "");
+          const countryName = cleanString(r.country || "");
+          if (!name || !countryName) continue;
+
+          // Disambiguate region: if admin1 is present, use admin1; only prepend admin2 if it differs from both admin1 and city name
+          let regionLabel = admin1 || admin2 || "";
+          const baseKey = `${name.toLowerCase()}|${regionLabel.toLowerCase()}|${countryName.toLowerCase()}`;
+          if (
+            dedupMap.has(baseKey) &&
+            admin2 &&
+            admin2.toLowerCase() !== admin1.toLowerCase() &&
+            admin2.toLowerCase() !== name.toLowerCase() &&
+            !admin2.toLowerCase().startsWith(`${name.toLowerCase()} `)
+          ) {
+            regionLabel = [admin2, admin1].filter(Boolean).join(", ");
+          }
+
+          const latNum = typeof r.latitude === "number" ? r.latitude : undefined;
+          const lonNum = typeof r.longitude === "number" ? r.longitude : undefined;
+          addSuggestion(name, regionLabel, countryName, Number(r.population) || 0, latNum, lonNum);
+        }
+      }
+
+      const suggestions: CachedSearchSuggestion[] = Array.from(dedupMap.values())
+        .sort((a, b) => {
+          const aExact = a.name.toLowerCase() === placeLower ? 1 : 0;
+          const bExact = b.name.toLowerCase() === placeLower ? 1 : 0;
+          if (aExact !== bExact) return bExact - aExact;
+
+          const aStarts = a.name.toLowerCase().startsWith(placeLower) ? 1 : 0;
+          const bStarts = b.name.toLowerCase().startsWith(placeLower) ? 1 : 0;
+          if (aStarts !== bStarts) return bStarts - aStarts;
+
+          return (b.population || 0) - (a.population || 0);
+        })
+        .slice(0, 8)
+        .map(({ id, name, region, country, label, lat, lon }) => ({
+          id,
+          name,
+          region,
+          country,
+          label,
+          ...(isValidCoord(lat, lon) ? { lat, lon } : {}),
+        }));
+
+      if (suggestions.length > 0) {
+        if (searchSuggestionCache.has(qLower)) {
+          searchSuggestionCache.delete(qLower);
+        } else if (searchSuggestionCache.size >= 500) {
+          const oldestKey = searchSuggestionCache.keys().next().value;
+          if (oldestKey !== undefined) searchSuggestionCache.delete(oldestKey);
+        }
+        searchSuggestionCache.set(qLower, {
+          suggestions,
+          expiresAt: Date.now() + SEARCH_CACHE_TTL_MS,
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        query: rawQuery,
+        suggestions,
       });
     }
 

@@ -2,6 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Rainova Homepage Blue Brand Visual Identity */
+  --rn-primary: #4773ec;
+  --rn-primary-hover: #345fda;
+  --rn-primary-deep: #1e40af;
+  --rn-navy-deep: #0c2359;
+  --rn-sky-accent: #0284c7;
+  --rn-sky-bright: #38bdf8;
+  --rn-surface-pale: #eff6ff;
+  --rn-surface-soft: #f0f6ff;
+  --rn-surface-neutral: #f8fafc;
+  --rn-pill-blue: #dbeafe;
+  --rn-white: #FFFFFF;
+  --rn-ink: #080e2b;
+  --rn-nav: #4d5a83;
+  --rn-muted: #556987;
+  --rn-border: #dce5fa;
+  --rn-border-strong: #adc1ef;
+  --rn-water-ink: #0369a1;
+
+  /* Semantic Status Tokens */
+  --rn-danger-bg: #FDF2F2;
+  --rn-danger-border: #F5C2C2;
+  --rn-danger-text: #991B1B;
+  --rn-warn-bg: #FEF9EC;
+  --rn-warn-border: #F2D694;
+  --rn-warn-text: #854D0E;
+
+  /* Radii & Shadows */
+  --rn-radius-panel: 22px;
+  --rn-radius-card: 16px;
+  --rn-radius-control: 12px;
+  --rn-radius-pill: 999px;
+  --rn-focus-ring: 0 0 0 3.5px rgba(71, 115, 236, 0.24);
+  --rn-shadow-soft: 0 8px 30px rgba(24, 60, 115, 0.06), 0 2px 6px rgba(24, 60, 115, 0.03);
+  --rn-shadow-hero: 0 16px 40px rgba(37, 99, 235, 0.22), 0 4px 12px rgba(24, 60, 115, 0.08);
+  --rn-font-sans: 'Orbit DM Sans', 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 html {
   scroll-behavior: smooth;
   background-color: #0c1a2e;
